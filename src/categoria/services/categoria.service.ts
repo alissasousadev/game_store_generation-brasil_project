@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Categoria } from '../entities/categoria.entity';
@@ -46,11 +46,26 @@ export class CategoriaService {
   }
 
   async create(categoria: Categoria): Promise<Categoria> {
+    const categoriaExistente = await this.categoriaRepository.findOne({
+    where: { tipo: categoria.tipo },
+  });
+
+  if (categoriaExistente)
+    throw new BadRequestException('Categoria já existe');
+
     return this.categoriaRepository.save(categoria);
   }
 
   async update(categoria: Categoria): Promise<Categoria> {
     await this.findById(categoria.id);
+
+    const categoriaExistente = await this.categoriaRepository.findOne({
+    where: { tipo: categoria.tipo },
+  });
+
+  if (categoriaExistente && categoriaExistente.id !== categoria.id)
+    throw new BadRequestException('Categoria já existe');
+  
     return this.categoriaRepository.save(categoria);
   }
 
